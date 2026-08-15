@@ -37,6 +37,7 @@
             this.TableComboBox = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
+            this.AllergenCheckedListBox = new System.Windows.Forms.CheckedListBox();
             this.CurrentOrderPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.currentorderDataGridView)).BeginInit();
             this.SuspendLayout();
@@ -46,11 +47,13 @@
             this.ProductsFlowPanel.AutoScroll = true;
             this.ProductsFlowPanel.Location = new System.Drawing.Point(12, 103);
             this.ProductsFlowPanel.Name = "ProductsFlowPanel";
+            this.ProductsFlowPanel.Padding = new System.Windows.Forms.Padding(10);
             this.ProductsFlowPanel.Size = new System.Drawing.Size(1170, 929);
             this.ProductsFlowPanel.TabIndex = 0;
             // 
             // CurrentOrderPanel
             // 
+            this.CurrentOrderPanel.Controls.Add(this.AllergenCheckedListBox);
             this.CurrentOrderPanel.Controls.Add(this.SaveOrder);
             this.CurrentOrderPanel.Controls.Add(this.orderTotalLabel);
             this.CurrentOrderPanel.Location = new System.Drawing.Point(1188, 103);
@@ -60,9 +63,9 @@
             // 
             // SaveOrder
             // 
-            this.SaveOrder.Location = new System.Drawing.Point(403, 648);
+            this.SaveOrder.Location = new System.Drawing.Point(430, 659);
             this.SaveOrder.Name = "SaveOrder";
-            this.SaveOrder.Size = new System.Drawing.Size(126, 63);
+            this.SaveOrder.Size = new System.Drawing.Size(138, 99);
             this.SaveOrder.TabIndex = 1;
             this.SaveOrder.Text = "Save";
             this.SaveOrder.UseVisualStyleBackColor = true;
@@ -72,7 +75,7 @@
             // 
             this.orderTotalLabel.AutoSize = true;
             this.orderTotalLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.orderTotalLabel.Location = new System.Drawing.Point(585, 659);
+            this.orderTotalLabel.Location = new System.Drawing.Point(574, 669);
             this.orderTotalLabel.Name = "orderTotalLabel";
             this.orderTotalLabel.Size = new System.Drawing.Size(86, 32);
             this.orderTotalLabel.TabIndex = 0;
@@ -127,6 +130,14 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // AllergenCheckedListBox
+            // 
+            this.AllergenCheckedListBox.FormattingEnabled = true;
+            this.AllergenCheckedListBox.Location = new System.Drawing.Point(3, 659);
+            this.AllergenCheckedListBox.Name = "AllergenCheckedListBox";
+            this.AllergenCheckedListBox.Size = new System.Drawing.Size(394, 257);
+            this.AllergenCheckedListBox.TabIndex = 2;
+            // 
             // POS
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
@@ -161,5 +172,6 @@
         private System.Windows.Forms.ComboBox TableComboBox;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.CheckedListBox AllergenCheckedListBox;
     }
 }

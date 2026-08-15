@@ -29,7 +29,10 @@ namespace NEA_project
         {
             Button btn = (Button)sender;               // Casts the sender as a button
             int tableId = (int)btn.Tag;                // Stores the tableId an integer
-            MessageBox.Show("TableID: " + tableId);   
+
+            TableAction tableActionForm = new TableAction(tableId, btn.Text);  
+            tableActionForm.ShowDialog();              
+
         }
 
 
@@ -75,10 +78,11 @@ namespace NEA_project
                                 break;
                         }
 
+
                         tableButton.Click += tableButton_Click;   // Attatches the button click to method tableButton_click
                         this.Controls.Add(tableButton);           // Adds the button to the form
 
-                        // Layout: arrange buttons in a grid
+                      
                         x += 240;
                         count++;
                         if (count % 4 == 0) // move to next row after 4 buttons

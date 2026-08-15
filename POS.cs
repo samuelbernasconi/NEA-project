@@ -16,7 +16,8 @@ namespace NEA_project
     {
         private static readonly string ConnectionString = @"Data Source=C:\Users\Samuel\NEA project\Files\RMSdatabase.db;Version=3;";
 
-        public POS()
+        private readonly string Role;
+        public POS(string Role)
         {
             InitializeComponent();
             CurrentOrdersetup();
@@ -26,21 +27,61 @@ namespace NEA_project
         private void POS_Load(object sender, EventArgs e)
         {
             LoadProducts();
+            LoadAllergens();
             LoadTables();
          
         }
 
         private void ProductButton_Click(object sender, EventArgs e)
         {
-            Button btn = (Button)sender;               // Casts the sender as a button
+            Button btn = (Button)sender;
+            var (productId, productName, barcode, price, isActive) = ((int, string, int, decimal, string))btn.Tag;
 
-            (int productId, string productName, int barcode, decimal price, string isActive) // Gets values from the button tag
-            = ((int, string, int, decimal, string))btn.Tag;
+            List<string> selectedAllergens = AllergenCheckedListBox.CheckedItems.Cast<string>().ToList(); // Stored selected allergens in a list
+            if (selectedAllergens.Count > 0)
+            {
+                using (SQLiteConnection connection = new SQLiteConnection(ConnectionString))
+                {
+                    connection.Open();
+                    string query = @"
+                    SELECT INGREDIENT.ingredient_name
+                    FROM RECIPE
+                    JOIN INGREDIENT ON RECIPE.ingredient_id = INGREDIENT.ingredient_id
+                    WHERE RECIPE.product_id = @product_id";
+                    using (SQLiteCommand cmd = new SQLiteCommand(query, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@product_id", productId);
+                        List<string> allergensInProduct = new List<string>();  // Stores allergents found in the product in a list
 
+                        using (SQLiteDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                string ingredient = reader.GetString(0);       // Gets ingredient name
+                                if (selectedAllergens.Contains(ingredient))    // Checks if ingredient is in the selected allergens list
+                                    allergensInProduct.Add(ingredient);        // Adds allergen to the allergensInProduct list
+                            }
+                        }
 
+                        if (allergensInProduct.Count > 0)
+                        {
+                            string allergenList = string.Join(", ", allergensInProduct);
+                            DialogResult result = MessageBox.Show(
+                                "Warning! This product contains the following allergens: "+ allergenList +". Continue?",
+                                "Allergen Warning",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Warning
+                            );
+                            if (result == DialogResult.No) return; // stop adding
+                        }
+                    }
+                }
+            }
+
+            
             foreach (DataGridViewRow row in currentorderDataGridView.Rows)
             {
-                if ((int)row.Cells["ProductID"].Value == productId)
+                if (!row.IsNewRow && Convert.ToInt32(row.Cells["ProductID"].Value) == productId)
                 {
                     int qty = Convert.ToInt32(row.Cells["Quantity"].Value) + 1;
                     row.Cells["Quantity"].Value = qty;
@@ -49,25 +90,11 @@ namespace NEA_project
                 }
             }
 
+            // 3) Product not found — add as new row
             currentorderDataGridView.Rows.Add(productId, productName, 1, price);
             UpdateOrderTotal();
-
         }
 
-        /*
-
-          if (!currentorderDataGridView.Columns.Contains("DeleteBtn"))
-            {
-                DataGridViewButtonColumn deleteButtonColumn = new DataGridViewButtonColumn(); // Creates a new button column
-        deleteButtonColumn.Name = "DeleteBtn";      // Properties of the button column
-                deleteButtonColumn.HeaderText = "";
-                deleteButtonColumn.Text = "Delete";
-                deleteButtonColumn.UseColumnTextForButtonValue = true;
-                deleteButtonColumn.FillWeight = 10;
-                currentorderDataGridView.Columns.Add(deleteButtonColumn);
-            }
-
-           */
 
         private void currentorderDataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -140,9 +167,8 @@ namespace NEA_project
                         ProductsFlowPanel.Controls.Add(ProductButton);
                     }
                 }
-
-
             }
+
         }
 
         private void LoadTables()
@@ -186,7 +212,7 @@ namespace NEA_project
         private void TableComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
 
-            //           int selectedTableId = Convert.ToInt32(TableComboBox.SelectedValue);  put this in save button
+         //int selectedTableId = Convert.ToInt32(TableComboBox.SelectedValue);  put this in save button
 
 
         }
@@ -196,6 +222,19 @@ namespace NEA_project
 
             int selectedTableId = Convert.ToInt32(TableComboBox.SelectedValue);
             int orderId;
+
+            List<string> selectedAllergens = AllergenCheckedListBox.CheckedItems.Cast<string>().ToList();  // Creates a list of selected allergens 
+
+            string allergensStr;
+
+            if (selectedAllergens.Count > 0)
+            {
+                allergensStr = string.Join(", ", selectedAllergens); // Joins all allergens separated by commas
+            }
+            else
+            {
+                allergensStr = "NULL"; // No allergens 
+            }
 
             using (SQLiteConnection connection = new SQLiteConnection(ConnectionString))
             {
@@ -207,14 +246,16 @@ namespace NEA_project
                     try
                     {
 
-                        cmd.CommandText = "INSERT INTO ORDER_DETAILS (table_id, status) VALUES (@table_id, @status);";  // Insert new order into ORDER_DETAILS
+                        cmd.CommandText = "INSERT INTO ORDER_DETAILS (table_id, status, order_datetime, allergens) VALUES (@table_id, @status, @order_datetime, @allergens);";  // Insert new order into ORDER_DETAILS
                         cmd.Parameters.AddWithValue("@table_id", selectedTableId);
                         cmd.Parameters.AddWithValue("@status", "Open");
+                        cmd.Parameters.AddWithValue("@order_datetime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")); // Adds current date and time
+                        cmd.Parameters.AddWithValue("@allergens", allergensStr);
                         cmd.ExecuteNonQuery();
     
                         cmd.CommandText = "SELECT last_insert_rowid();";        // Get the order_id of the newly created order
                         orderId = Convert.ToInt32(cmd.ExecuteScalar());
-
+                       
                         foreach (DataGridViewRow row in currentorderDataGridView.Rows)  // Iterates through each row in the DataGridView and inserts into ORDER_ITEMS
                         {
                             if (!row.IsNewRow) // skip the blank row at the bottom
@@ -226,8 +267,10 @@ namespace NEA_project
                                 cmd.Parameters.Clear();
                                 cmd.Parameters.AddWithValue("@order_id", orderId);
                                 cmd.Parameters.AddWithValue("@product_id", productId);
-                                cmd.Parameters.AddWithValue("@quantity", quantity);
+                                cmd.Parameters.AddWithValue("@quantity", quantity);                               
                                 cmd.ExecuteNonQuery();
+
+                                DeductIngredients(connection, productId, quantity);
                             }
                         }
 
@@ -253,13 +296,65 @@ namespace NEA_project
 
 
             }
+
+
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             this.Close();
-            homepage homepage = new homepage(); 
+            homepage homepage = new homepage(Role); 
             homepage.Show();
         }
+
+        private void DeductIngredients(SQLiteConnection connection, int productId, int orderQuantity)  // Takes in the connection, productId and order quantity as parameters
+        {
+            using (SQLiteCommand cmd = new SQLiteCommand(connection))
+            {
+                cmd.CommandText = "SELECT ingredient_id, quantity_required FROM RECIPE WHERE product_id = @product_id;";  // Selects all ingredients and quantities required for the given product
+                cmd.Parameters.AddWithValue("@product_id", productId);                                                    // Adds productId as a parameter
+
+                using (SQLiteDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int ingredientId = reader.GetInt32(0);             // Gets ingredient ID
+                        decimal quantityRequired = reader.GetDecimal(1);   // Gets quantity required per product
+
+                        decimal totalDeduction = quantityRequired * orderQuantity; // Calculates total deduction based on order quantity by doing quantity required * order quantity
+
+                        using (SQLiteCommand updateCmd = new SQLiteCommand(connection))
+                        {
+                            updateCmd.CommandText = "UPDATE INGREDIENT SET stock_level = stock_level - @deduction WHERE ingredient_id = @ingredient_id;"; 
+                            updateCmd.Parameters.AddWithValue("@deduction", totalDeduction);  // Adds total deduction as a parameter
+                            updateCmd.Parameters.AddWithValue("@ingredient_id", ingredientId);// Adds ingredient ID as a parameter
+                            updateCmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
+        }
+
+        private void LoadAllergens()
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(ConnectionString))
+            {
+                connection.Open();
+                string query = "SELECT ingredient_name FROM INGREDIENT";         // Gets all ingredient names 
+                using (SQLiteCommand cmd = new SQLiteCommand(query, connection))
+                using (SQLiteDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        AllergenCheckedListBox.Items.Add(reader.GetString(0));   // Adds each ingredient name to the CheckedListBox
+                    }
+                }
+            }
+        }
+
+
+
+
+
     }
 }

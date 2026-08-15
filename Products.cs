@@ -51,6 +51,18 @@ namespace NEA_project
                     ProductsDataGridView.Columns.Add(editButtonColumn);
                 }
 
+                if (!ProductsDataGridView.Columns.Contains("IngredientsBtn"))
+                {
+                    DataGridViewButtonColumn ingredientsButtonColumn = new DataGridViewButtonColumn();
+                    ingredientsButtonColumn.Name = "IngredientsBtn";
+                    ingredientsButtonColumn.HeaderText = "";
+                    ingredientsButtonColumn.Text = "View Ingredients";
+                    ingredientsButtonColumn.UseColumnTextForButtonValue = true;
+                    ProductsDataGridView.Columns.Add(ingredientsButtonColumn);
+                }
+
+
+
             }
         }
 
@@ -75,7 +87,22 @@ namespace NEA_project
                 }
 
             }
+
+            if (ProductsDataGridView.Columns[e.ColumnIndex].Name == "IngredientsBtn" && e.RowIndex >= 0)
+            {
+                int productId = Convert.ToInt32(ProductsDataGridView.Rows[e.RowIndex].Cells["product_id"].Value);
+
+                Ingredients Ingredients = new Ingredients(productId);  // Opens the Ingredients form and passes the productID
+                Ingredients.ShowDialog();
+            }
+
         }
+
+
+
+
+
+
 
         private void AddProductsBtn_Click_1(object sender, EventArgs e)
         {

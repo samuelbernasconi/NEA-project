@@ -34,11 +34,16 @@ namespace NEA_project
 
         private void LoginBtn_Click(object sender, EventArgs e)
         {
+            bool passwordMatch = false;
+            bool mustChangePassword = false;
+            int  currentUserId = -1;
+            string Role = "";
+
             using (SQLiteConnection connection = new SQLiteConnection(ConnectionString))         // creates a connection to the database
             {
                 connection.Open();
 
-                string query = "SELECT Password FROM ACCOUNT WHERE username = @username_input";  // Defines the SQL query to get the stored password for the given username
+                string query = "SELECT Password, MustChangePassword, user_id, role FROM ACCOUNT WHERE username = @username_input";  // Defines the SQL query to get the stored password for the given username
 
                 using (SQLiteCommand command = new SQLiteCommand(query, connection))             // Creates a new command which will run the SQL query 
                 {
@@ -47,21 +52,18 @@ namespace NEA_project
 
                     using (SQLiteDataReader reader = command.ExecuteReader())                    // Executes the command and gets a data reader to read the results
                     {
-                        if (reader.Read())                                                       // Checks if a record containing the inputted username exists
+                        if (reader.Read())
                         {
-                            string password_stored = reader.GetString(reader.GetOrdinal("password")); // Gets the index of the password column and retrieves the stored password
-                            string password_input = PasswordTxt.Text;
+                            string password_stored = reader.GetString(reader.GetOrdinal("password"));  // Gets the index of the password column and retrieves the stored password
+                            string password_input = PasswordTxt.Text;                                       
 
-                            if (password_stored == password_input)          // Compares the stored password with the inputted password for the login check
+                            passwordMatch = Encrypter.VerifyPassword(password_input, password_stored);  // Uses the Encrypter class to verify the password
+
+                            if (passwordMatch)
                             {
-                                MessageBox.Show("Login successful!");
-
-
-
-                                homepage newform = new homepage();
-                                newform.Show();
-                                this.Hide();
-
+                                mustChangePassword = reader.GetInt32(reader.GetOrdinal("MustChangePassword")) == 1;  // Checks if the user must change their password
+                                currentUserId = reader.GetInt32(reader.GetOrdinal("user_id"));                                // Gets the user ID
+                                Role = reader.GetString(reader.GetOrdinal("role"));
                             }
                             else
                             {
@@ -72,27 +74,37 @@ namespace NEA_project
                         {
                             MessageBox.Show("Username not found.");
                         }
-
                     }
 
                 }
 
             }
 
+            if (passwordMatch)
+            {
+                if (mustChangePassword)
+                {
+                    MessageBox.Show("Password change required.");
+                    ChangePassword changeForm = new ChangePassword(currentUserId);   // Opens the ChangePassword form
+
+                    changeForm.ShowDialog();  
+                }
+
+                MessageBox.Show("Login successful!");
+
+                homepage newform = new homepage(Role);
+                newform.Show();
+                this.Hide();
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            homepage newform = new homepage();
+            homepage newform = new homepage("Manager");
             newform.Show();
             this.Hide();
         }
 
        
     }
-          
-
-
-
-         
 }

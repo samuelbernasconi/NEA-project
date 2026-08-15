@@ -14,6 +14,7 @@ namespace NEA_project
     public partial class Staff : Form
     {
         private static readonly string ConnectionString = @"Data Source=C:\Users\Samuel\NEA project\Files\RMSdatabase.db;Version=3;";
+        
 
         public Staff()
         {
@@ -28,27 +29,59 @@ namespace NEA_project
  
         private void LoadStaffTable()
         {
-                using (SQLiteConnection connection = new SQLiteConnection(ConnectionString))
-                {
+            StaffDataGridView.CellContentClick += StaffDataGridView_CellContentClick;
+
+
+
+
+            using (SQLiteConnection connection = new SQLiteConnection(ConnectionString))
+            {
                     connection.Open();
+                                                                                                // Selects the needed fields from the  ACCOUNT table
+                    string query = @"SELECT user_id, username, role, email, name                                 
+                                   FROM ACCOUNT";
 
-                    string query = "SELECT * FROM ACCOUNT";                                      // Selects all of the data from the PRODUCT table
-
-                    using (SQLiteDataAdapter adapter = new SQLiteDataAdapter(query, connection)) // Uses the data adapter to fill a DataTable with the results of the query
+                using (SQLiteDataAdapter adapter = new SQLiteDataAdapter(query, connection))     // Uses the data adapter to fill a DataTable with the results of the query
                     {
                         DataTable table = new DataTable();
                         adapter.Fill(table);                                                     // Fill the DataTable with the data feched from the PRODUCT table
 
-                        StaffDataGridView.DataSource = table;                                 // Show results in DataGridView
+                        StaffDataGridView.DataSource = table;                                    // Show results in DataGridView
                     }
 
                    
 
-                }
+            }
+
+
+
+            if (!StaffDataGridView.Columns.Contains("DeleteBtn"))
+            {
+                DataGridViewButtonColumn deleteButtonColumn = new DataGridViewButtonColumn();
+                deleteButtonColumn.Name = "DeleteBtn";
+                deleteButtonColumn.HeaderText = "";
+                deleteButtonColumn.Text = "Delete";
+                deleteButtonColumn.UseColumnTextForButtonValue = true;
+                StaffDataGridView.Columns.Add(deleteButtonColumn);
+            }
+
+
         }
 
-           
-          
+        private void StaffDataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (StaffDataGridView.Columns[e.ColumnIndex].Name == "DeleteBtn" && e.RowIndex >= 0) // Checks that the Delete button column was clicked
+            {
+                int userId = Convert.ToInt32(StaffDataGridView.Rows[e.RowIndex].Cells["user_id"].Value);  // Gets the user ID of the selected row
+                string username = StaffDataGridView.Rows[e.RowIndex].Cells["username"].Value.ToString();  // Gets the username of the selected row
+
+                DeleteStaffConfirm confirmForm = new DeleteStaffConfirm(userId, username);  // Opens the confirmation form
+                confirmForm.ShowDialog(); 
+              
+                LoadStaffTable();
+            }
+        }
+
 
         private void SaveStaffBtn_Click(object sender, EventArgs e)
         {
@@ -106,6 +139,11 @@ namespace NEA_project
         private void AddStaffBtn_Click(object sender, EventArgs e)
         {
             AddStaffPanel.Show();
+        }
+
+        private void StaffDataGridView_CellContentClick_1(object sender, DataGridViewCellEventArgs e)
+        {
+
         }
     }
 }

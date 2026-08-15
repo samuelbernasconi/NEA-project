@@ -241,6 +241,7 @@
             this.StaffDataGridView.RowTemplate.Height = 28;
             this.StaffDataGridView.Size = new System.Drawing.Size(1100, 950);
             this.StaffDataGridView.TabIndex = 13;
+            this.StaffDataGridView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.StaffDataGridView_CellContentClick_1);
             // 
             // Staff
             // 
@@ -248,6 +249,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ButtonShadow;
             this.ClientSize = new System.Drawing.Size(1580, 1145);
+            this.ControlBox = false;
             this.Controls.Add(this.StaffDataGridView);
             this.Controls.Add(this.AddStaffPanel);
             this.Controls.Add(this.panel2);

@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(loginpage));
             this.LoginPanel = new System.Windows.Forms.Panel();
             this.PasswordTxt = new System.Windows.Forms.TextBox();
             this.UsernameTxt = new System.Windows.Forms.TextBox();
@@ -35,7 +36,6 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
             this.LoginPanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -114,27 +114,17 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "Username";
             // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(70, 373);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(213, 114);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "quicklogin";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
             // loginpage
             // 
             this.AcceptButton = this.LoginBtn;
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.ClientSize = new System.Drawing.Size(1478, 769);
             this.ControlBox = false;
-            this.Controls.Add(this.button1);
             this.Controls.Add(this.LoginPanel);
             this.Name = "loginpage";
-            this.Text = "Login Page";
+            this.Text = "a";
             this.LoginPanel.ResumeLayout(false);
             this.LoginPanel.PerformLayout();
             this.ResumeLayout(false);
@@ -150,7 +140,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox UsernameTxt;
         private System.Windows.Forms.TextBox PasswordTxt;
-        private System.Windows.Forms.Button button1;
     }
 }
 

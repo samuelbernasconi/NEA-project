@@ -15,9 +15,13 @@ namespace NEA_project
     {
         private static readonly string ConnectionString = @"Data Source=C:\Users\Samuel\NEA project\Files\RMSdatabase.db;Version=3;";
 
-        public homepage()
+        private string Role;
+
+        public homepage(string role)
         {
             InitializeComponent();
+            Role = role;
+            AccessLevel();
         }
 
         public void loadform(object Form)
@@ -34,16 +38,40 @@ namespace NEA_project
 
         private void ProductsBtn_Click(object sender, EventArgs e)
         {
+
+
             loadform (new Products());   // Loads the Products form into the MainPanel
+
+
         }
 
-       
+        private void AccessLevel()
+        {
+            switch (Role)
+            {
+                case "Manager":
+                    break;                        // Managers have full access
+
+                case "Chef":                    
+                    TablesBtn.Enabled = false;    // Disable access to Tables, Staff, and Reports
+                    StaffBtn.Enabled = false; 
+                    ReportsBtn.Enabled = false;
+                    POSBtn.Enabled = false;
+                    break;
+
+                case "Waiter": 
+                    KitchenBtn.Enabled = false;   // Disable access to Kitchen, Staff, and Reports
+                    StaffBtn.Enabled = false;
+                    ReportsBtn.Enabled = false;
+                    break;
+            }
+        }
 
 
 
         private void KitchenBtn_Click(object sender, EventArgs e)
         {
-            
+            loadform (new Kitchen());
 
         }
 
@@ -64,13 +92,18 @@ namespace NEA_project
 
         private void POSBtn_Click(object sender, EventArgs e)
         {
-            new POS().Show();
+            new POS(Role).Show();
             this.Hide();
         }
 
         private void homepage_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void ReportsBtn_Click(object sender, EventArgs e)
+        {
+            loadform (new Reports());
         }
     }
 }

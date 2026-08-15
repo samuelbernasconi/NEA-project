@@ -37,7 +37,8 @@ namespace NEA_project
                      password TEXT NOT NULL, 
                      role NOT NULL CHECK (role IN ('Waiter', 'Chef', 'Manager')),
                      name TEXT NOT NULL, 
-                     email TEXT NOT NULL
+                     email TEXT NOT NULL,
+                     must_change_password INTEGER DEFAULT 1
                      );";                                                                                                               // Creates the ACCOUNT table
 
                 string CreateProductTableQuery = @"                                                                                        
@@ -48,6 +49,24 @@ namespace NEA_project
                      barcode INTEGER NOT NULL UNIQUE, 
                      price TEXT NOT NULL, 
                      is_active TEXT NOT NULL CHECK (is_active IN ('Active','Inactive'))
+                     );";
+
+                string CreateIngredientTableQuery = @"
+                     CREATE TABLE IF NOT EXISTS INGREDIENT (
+                     ingredient_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     ingredient_name TEXT NOT NULL,
+                     stock_level REAL NOT NULL,
+                     unit TEXT NOT NULL
+                     );";
+
+                string CreateRecipeTableQuery = @"
+                     CREATE TABLE IF NOT EXISTS RECIPE (
+                     recipe_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     product_id INTEGER NOT NULL,
+                     ingredient_id INTEGER NOT NULL,
+                     quantity_required REAL NOT NULL,
+                     FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id),
+                     FOREIGN KEY (ingredient_id) REFERENCES INGREDIENT(ingredient_id)
                      );";
 
                 string CreateSeatingTableQuery = @"     
@@ -72,12 +91,39 @@ namespace NEA_project
                     CREATE TABLE IF NOT EXISTS ORDER_DETAILS (
                     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     table_id INTEGER NOT NULL,
-                    status TEXT NOT NULL CHECK (status IN ('Open', 'Closed', 'Cancelled')),
-                    FOREIGN KEY (table_id) REFERENCES SEATING(table_id)
+                    status TEXT NOT NULL CHECK (status IN ('Open', 'Closed', 'Cancelled', 'Completed')),
+                    order_datetime DATETIME NOT NULL,   
+                    allergens TEXT DEFAULT 'NULL',
+                    FOREIGN KEY (table_id) REFERENCES SEATING(table_id)                   
                     );";
+
+                string CreateBillTableQuery = @"
+                    CREATE TABLE IF NOT EXISTS BILL (
+                    bill_id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                    total REAL NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'Open',
+                    bill_datetime TEXT DEFUALT 'NULL'
+                    );";
+
+                string createBillTablesQuery = @"
+                    CREATE TABLE IF NOT EXISTS ORDER_BILL (
+                    bill_id INTEGER NOT NULL,
+                    order_id INTEGER NOT NULL,
+                    FOREIGN KEY (bill_id) REFERENCES BILL(bill_id),
+                    FOREIGN KEY (order_id) REFERENCES ORDER_DETAILS(order_id)
+                    );";
+
+
+
 
                 using (var command = new SQLiteCommand(connection))    // Runs the query
                     {
+                        command.CommandText = CreateIngredientTableQuery;
+                        command.ExecuteNonQuery();
+                        
+                        command.CommandText = CreateRecipeTableQuery;
+                        command.ExecuteNonQuery();
+
                         command.CommandText = CreateUserTableQuery;
                         command.ExecuteNonQuery();
 
@@ -91,6 +137,12 @@ namespace NEA_project
                         command.ExecuteNonQuery();
 
                         command.CommandText = CreateOrderTableQuery;
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = CreateBillTableQuery;
+                        command.ExecuteNonQuery();
+                      
+                        command.CommandText = createBillTablesQuery;    
                         command.ExecuteNonQuery();
                 }
 
